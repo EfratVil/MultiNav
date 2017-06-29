@@ -1,0 +1,118 @@
+
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font-size: 10px;
+  fill: #6B6B6B;
+ }
+
+
+/*.axis--x path {
+  display: none;
+}*/
+
+
+  .line{
+    fill: none;
+    stroke: blue;
+    stroke-width: 2px;
+  }
+
+  .tick text{
+    font-size: 12px;
+  }
+
+  .tick line{
+    opacity: 0.2;
+  }
+
+
+
+
+
+
+
+/*------ Line Chart ----------*/
+
+	/*path {
+	    stroke: steelblue;
+	    stroke-width: 3;
+	    fill: none;
+	}*/
+
+
+        /*.axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }*/
+
+        /*.x.axis path {
+            display: none;
+        }*/
+
+        .line {
+            fill: none;
+            stroke: steelblue;
+            stroke-width: 1.5px;
+        }
+
+/*------ bar Chart ----------*/
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+
+
+/*------ Grids ----------*/
+
+.grid .tick {
+    stroke: lightgrey;
+    opacity: 0.7;
+}
+
+/*------ tool tip ----------*/
+.grid path {
+      stroke-width: 0;
+}
+
+            div.tooltip {
+                position: absolute;
+                max-width: 200px;
+                height: auto;
+                padding: 5px;
+                background-color: white;
+                -webkit-border-radius: 5px;
+                -moz-border-radius: 5px;
+                border-radius: 5px;
+                -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+                -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+                box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+                pointer-events: none; /* MUI IMPORTANTE! */
+                font-family: sans-serif;
+                font-size: 12px;
+            }
+
+
+/*------ Legends ----------*/
+
+.Legend {
+font-weight: bold;
+font-size: 16px;
+}

@@ -1,0 +1,10 @@
+dependencies:
+  - name: d3
+    version: 4.5.0
+    src: "htmlwidgets/lib/d3-4.5.0"
+    script: d3.min.js
+  - name: MultiNav
+    version: 0
+    src: "htmlwidgets/lib/MultiNav_0"
+    script: MultiNav.js
+    stylesheet: charts.css
