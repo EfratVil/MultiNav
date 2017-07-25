@@ -45,14 +45,30 @@ HTMLWidgets.widget({
               mNav_Line_chart({ data: ds, chart: el.id, x_ds: xin.x_var, y_ds: xin.y_var, width: width, height: height });
           }
 
+
         // 2) Scatter plot
         if (xin.chart_type == "scatter") {
-            if (xin.link_id == null)
-            {
-                mNav_scatter_plot({ data: ds, chart: el.id, x_ds: xin.x_var, y_ds: xin.y_var, width: width, height: height});
- }
+            if (xin.link_id == null) {
+                mNav_scatter_plot({ data: ds, chart: el.id, x_ds: xin.x_var, y_ds: xin.y_var, width: width, height: height });
+            }
             else {
                 mNav_scatter_plot({ data: ds, chart: el.id, x_ds: xin.x_var, y_ds: xin.y_var, width: width, height: height, link_id: xin.link_id, linked: true });
+
+            }
+
+            //  if (width > 120 && height > 80) {
+            //  }
+            // else { el.innerHTML = "<div id='xxx'>Window too small</div>"; }
+        }
+
+        // 2) Flex Scatter uni
+        if (xin.chart_type == "flex_scatter_uni") {
+            if (xin.link_id == null)
+            {
+                mNav_flex_scatter_uni({ data: ds, chart: el.id, x_ds: xin.x_var, y_ds: xin.y_var, width: width, height: height});
+ }
+            else {
+                mNav_flex_scatter_uni({ data: ds, chart: el.id, x_ds: xin.x_var, y_ds: xin.y_var, width: width, height: height, link_id: xin.link_id, linked: true });
   
             }
 
@@ -124,6 +140,69 @@ HTMLWidgets.widget({
 
           }
        
+          //// flex Scatter uni with linked line chart
+          //if (xin.chart_type == "flex_scatter_and_linked_line") {
+
+          //    var id = xin.link_id
+          //    el.innerHTML = "<div id='link_" + id + "'>link_" + id + "</div><div id='" + id + "'></div>";
+
+          //    mNav_Line_chart({ data: ds_raw, chart: id, x_ds: "seq_id", y_ds: "20053", width: width, height: height / 3 });
+          //    mNav_flex_scatter_uni({
+          //        data: ds, chart: el.id, link_id: id, x_ds: xin.x_var, y_ds: xin.y_var,
+          //        width: width, height: 2 * height / 3, linked: true
+          //    });
+
+          //    d3.select("#link_" + id).on("change", function () {
+          //        d3.select("#" + id).html("");
+
+          //        if (q_data == null) {
+          //            mNav_Line_chart({ data: ds_raw, chart: id, x_ds: "seq_id", y_ds: d3.select("#link_" + id).html(), width: width, height: height / 3 })
+          //        }
+          //        else {
+          //            mNav_functional_box_plot_with_line({
+          //                data: q_data, ds_raw: ds_raw, chart: id, width: width, height: height / 3, line_id: d3.select("#link_" + id).html()
+          //            });
+
+          //        }
+          //    });
+
+          //}
+
+          // Scatter with linked line chart1
+          if (xin.chart_type == "scatter_and_linked_ts") {
+
+              var id = xin.link_id
+              el.innerHTML = "<div id='link_" + id + "'>link_" + id + "</div><div id='" + id + "'></div>";
+
+              mNav_Line_chart({ data: ds_raw, chart: id, x_ds: "seq_id", y_ds: "20053", width: width, height: height / 3 });
+              mNav_scatter_plot({
+                  data: ds, chart: el.id, link_id: id, x_ds: xin.x_var, y_ds: xin.y_var,
+                  width: width, height: 2 * height / 3, linked: true
+              });
+
+              d3.select("#link_" + id).on("change", function () {
+                  d3.select("#" + id).html("");
+
+                  if (q_data == null) {
+
+                      var ds1 = ds.filter(function (d) { return d.id == d3.select("#link_" + id).html()});  //d3.select("#" + id).html("");
+                      //console.log(ds1[0]);
+                      console.log(ds1["0"]["start"]);
+
+                      var ds_raw1 = ds_raw.filter(function (d) { return d.seq_id > ds1["0"]["start"] && d.seq_id < ds1["0"]["start"] + ds1["0"]["len"]; });
+
+                      mNav_Line_chart({ data: ds_raw1, chart: id, x_ds: "seq_id", y_ds: "vec", width: width, height: height / 3 })
+                  }
+                  else {
+                      mNav_functional_box_plot_with_line({
+                          data: q_data, ds_raw: ds_raw, chart: id, width: width, height: height / 3, line_id: d3.select("#link_" + id).html()
+                      });
+
+                  }
+              });
+
+          }
+
 
 
         // Network with linked line chart

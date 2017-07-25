@@ -196,6 +196,189 @@ function mNav_scatter_plot(args) {
 
         }
 
+//need to coypy back!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+function mNav_flex_scatter_uni(args) {
+
+    var chart = args.chart;
+    var data = args.data;
+    var x_ds = args.x_ds;
+    var y_ds = args.y_ds;
+    var width = args.width || 500;
+    var margin = args.margin || { top: 20, right: 20, bottom: 30, left: 50 };
+    var height = args.height || width / 1.618;
+    var color = args.color || "#1f78b4";
+    var linked = args.linked || false;                    // Activate linked chart
+
+    width = width - margin.left - margin.right,
+        height = height - margin.top - margin.bottom - 30; //the '-30' is for leaving space for the buttons
+
+    ////tooltip
+    //var tooltip = d3.select("body").append("div")
+    //               .attr("class", "tooltip")
+    //               .style("opacity", 0);
+
+    data.forEach(function (d) {                             //Todo - configurable date field
+        Object.keys(data[0]).filter(function (k) { return k != "Date" }).forEach(function (k) {
+            d[k] = +d[k];
+        });
+    });
+
+
+    data1 = data.sort(function (a, b) {        return b[y_ds] - a[y_ds];    });
+
+    data1 = data1.map(function (d, i) {
+        return {
+            x: i,
+            y: +d[y_ds]
+        };
+    });
+
+
+    var min = d3.min(data1, function (d) { return d.y; });
+
+    var log_fix = 0;
+    if (min <= 0)
+    { log_fix = Math.abs(min) + 0.01 }
+
+    data2 = data1.map(function (d, i) {
+        return {
+            x: data[i][x_ds],
+            x1: +d.x,
+            y: +d.y,
+            y_exp: Math.exp(+d.y),
+            y_log: Math.log(+d.y + log_fix),
+            y_diff: data1[i].y + data1[i + 1]
+
+        };
+    });
+
+
+    var x = d3.scaleLinear()
+        .range([0, width]);
+
+    var y = d3.scaleLinear()
+        .range([height, 0]);
+
+    var xAxis = d3.axisBottom(x).ticks(12),
+        yAxis = d3.axisLeft(y).ticks(12 * height / width);
+
+    d3.select("#" + chart).append("span").html("<button id='" + chart + "_b1' type='button' style='padding:1px' class='btn btn- info btn- sm'>Sort</button>&nbsp;&nbsp;&nbsp;&nbsp;" +
+        "<button id='" + chart + "_b2' type='button' style='padding:1px' class='btn btn- info btn- sm'>Exp</button>&nbsp;&nbsp;" +
+        "<button id='" + chart + "_b3' type='button' style='padding:1px' class='btn btn- info btn- sm'>Value</button>&nbsp;&nbsp;" +
+        "<button id='" + chart + "_b4' type='button' style='padding:1px' class='btn btn- info btn- sm'>Log</button>"
+    );
+    var svg = d3.select("#" + chart).append("svg")
+        .attr("id", chart + "_svg")
+        .attr("data-margin-right", margin.right)
+        .attr("data-margin-left", margin.left)
+        .attr("data-margin-top", margin.top)
+        .attr("data-margin-bottom", margin.bottom)
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    x.domain(d3.extent(data2, function (d) { return d.x; })).nice();
+    y.domain(d3.extent(data2, function (d) { return d.y; })).nice();
+
+    svg.append("g")
+        .attr("class", "x axis ")
+        .attr('id', "axis--x")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+        .append("text")
+        .attr("class", "label")
+        .attr("x", width)
+        .attr("y", -6)
+        .style("text-anchor", "end")
+        .text(x_ds);
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .attr('id', "axis--y")
+        .call(yAxis)
+        .append("text")
+        .attr("class", "axis-title")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text(y_ds);
+
+
+    svg.selectAll(".dot")
+        .data(data2)
+        .enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 4)
+        .attr("cx", function (d) { return x(d.x); })
+        .attr("cy", function (d) { return y(d.y); })
+        .attr("opacity", 0.5)
+        .style("fill", color)
+        .on("mouseover", function (d) {
+            if (linked) {
+                d3.select("#p_id").html(d["id"]);
+                d3.select('#p_id').dispatch('change');
+            }
+        });
+
+
+    var sort_order = 1;
+
+    d3.select("#" + chart + "_b1").on("click", function () {
+        var t = svg.transition().duration(1750);
+
+        if (sort_order == 1) {
+            svg.selectAll("circle").transition(t)
+                .attr("cx", function (d) { return x(d.x1); });
+            sort_order = 0;
+
+        }
+        else {
+            svg.selectAll("circle").transition(t)
+                .attr("cx", function (d) { return x(d.x); });
+            sort_order = 1;
+        }
+
+    });
+    // exp
+    d3.select("#" + chart + "_b2").on("click", function () {
+
+        y.domain(d3.extent(data2, function (d) { return d.y_exp; })).nice();
+
+        var t = svg.transition().duration(750);
+        svg.select("#axis--y").transition(t).call(yAxis);
+
+        svg.selectAll("circle").transition(t)
+            .attr("cy", function (d) { return y(d.y_exp); });
+    });
+
+    //Value
+    d3.select("#" + chart + "_b3").on("click", function () {
+        y.domain(d3.extent(data2, function (d) { return d.y; })).nice();
+
+        var t = svg.transition().duration(750);
+        svg.select("#axis--y").transition(t).call(yAxis);
+
+        svg.selectAll("circle").transition(t)
+            .attr("cy", function (d) { return y(d.y); });
+    });
+
+
+    //log
+    d3.select("#" + chart + "_b4").on("click", function () {
+        y.domain(d3.extent(data2, function (d) { return d.y_log; })).nice();
+
+        var t = svg.transition().duration(750);
+        svg.select("#axis--y").transition(t).call(yAxis);
+
+        svg.selectAll("circle").transition(t)
+            .attr("cy", function (d) { return y(d.y_log); });
+    });
+
+}
+
 function mNav_force(args) {
 
     var chart = args.chart;
