@@ -1,6 +1,6 @@
-#' sensors1
+#' DendrometerSensors
 #'
-#' sensors1 example data for MultiNav.
+#' DendrometerSensors example data for MultiNav.
 #'
 #' @source xxxxx,
 #' @format A data frame with columns
@@ -17,4 +17,4 @@
 #' \item{visib}{Visibility in miles}
 #' \item{time_hour}{Date and hour of the recording as a \code{POSIXct} date}
 #' }
-"sensors1"
+"DendrometerSensors"

@@ -1,7 +1,46 @@
 
 
+/* ------------------------------------------------------------- 
+   --      Added style just for the html widgets code         --
+   --      in JS code, part of main.css                       --
+   -------------------------------------------------------------
+*/
+
+.btn:not(:disabled):not(.disabled) {
+    cursor: pointer;
+}
+
+.btn-LightBlue {
+    background-color: #0277BD;
+    border-color: #01579B;
+    color: #fff;
+}
+.btn {
+    display: inline-block;
+    border-radius: 3px;
+    box-shadow: none;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 400;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+/* ------------------------------ */
+
+.body {
+  font: sans-serif;
+}
+
 .axis {
   font: 10px sans-serif;
+}
+
+.title {
+  font: 14px sans-serif;
 }
 
 .axis path,
@@ -29,7 +68,7 @@
   }
 
   .tick text{
-    font-size: 12px;
+    font-size: 10px;
   }
 
   .tick line{
