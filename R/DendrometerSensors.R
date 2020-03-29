@@ -1,20 +1,14 @@
 #' DendrometerSensors
 #'
-#' DendrometerSensors example data for MultiNav.
+#' Dendrometers are measurement devices that continuously monitor size variation in plant organs like stems, branches and fruits. 
+#' Data from dendrometers can be used for monitoring plants’ daily water status and accordingly make automated irrigation decisions.
+#' The dataset includes data of 100 sensors from 120 hourly readings (5 days).
 #'
-#' @source xxxxx,
-#' @format A data frame with columns
+#' @source Agricultural plant-based IoT company,
+#' @format A data.frame with columns
 #' \describe{
-#' \item{origin}{Weather station. Named origin to faciliate merging with
-#'   \code{\link{flights}} data}
-#' \item{year,month,day,hour}{Time of recording}
-#' \item{temp,dewp}{Temperature and dewpoint in F}
-#' \item{humid}{Relative humidity}
-#' \item{wind_dir,wind_speed,wind_gust}{Wind direction (in degrees), speed
-#'   and gust speed (in mph)}
-#' \item{precip}{Preciptation, in inches}
-#' \item{pressure}{Sea level pressure in millibars}
-#' \item{visib}{Visibility in miles}
-#' \item{time_hour}{Date and hour of the recording as a \code{POSIXct} date}
+#' \item{column}{Each column contains measurements from different dendrometer sensor.}
+#' \item{row}{Time of recording (in hours)}
+#' 
 #' }
 "DendrometerSensors"

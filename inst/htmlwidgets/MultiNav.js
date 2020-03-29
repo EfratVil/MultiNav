@@ -27,6 +27,17 @@ HTMLWidgets.widget({
         rotate = 0;
 
 
+		function randomString(len, charSet) {
+		charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+		var randomString = '';
+		for (var i = 0; i < len; i++) {
+			var randomPoz = Math.floor(Math.random() * charSet.length);
+			randomString += charSet.substring(randomPoz,randomPoz+1);
+		}
+		return randomString;
+		}
+	
+		
         var ds = HTMLWidgets.dataframeToD3(xin.data);
         var ds_raw = HTMLWidgets.dataframeToD3(xin.raw_data);
 		var data_difff = HTMLWidgets.dataframeToD3(xin.data_difff);
@@ -237,7 +248,10 @@ HTMLWidgets.widget({
           // 5) Bubbles
           if (xin.chart_type == "bubbles") {
 			  
-			  var id = xin.link_id   
+			  var id = xin.link_id  
+					if (id =="generate_link_id"			  )
+				    {id = randomString(10);}			  
+			  
               el.innerHTML = "<div id='link'>";
 			  el.innerHTML = el.innerHTML + "<a href='#' id='btn_update' class='btn btn-LightBlue'>Update</a><br/>";
 			  el.innerHTML = el.innerHTML + "Add here linked line charts</div><br/>";
@@ -267,7 +281,9 @@ HTMLWidgets.widget({
         // Scatter with linked line chart
           if (xin.chart_type == "scatter_and_linked_line") {
 
-              var id = xin.link_id   
+              var id = xin.link_id  
+					if (id =="generate_link_id"			  )
+				    {id = randomString(10);}			  
               el.innerHTML = "<div id='link_"+ id + "'>link_"+ id +"</div>";
               if (xin.show_diff==true)
 				  //
@@ -291,7 +307,7 @@ HTMLWidgets.widget({
                   else
                       {
                       mNav_functional_box_plot_with_line({
-                          data: q_data, ds_raw: ds_raw, chart: id, width: width, height: height / 3, line_id: d3.select("#link_" + id).html()
+                          data: q_data, ds_raw: ds_raw, chart: id, width: width, height: height / 3, line_id: d3.select("#link_" + id).html(), ylbl:xin.ylbl , xlbl:xin.xlbl
                       });
                       
                   }
@@ -301,7 +317,10 @@ HTMLWidgets.widget({
 	   
 		  if (xin.chart_type == "scatter_and_linked_line2") {
 
-              var id = xin.link_id   
+              var id = xin.link_id 
+				  if (id =="generate_link_id"			  )
+				  {id = randomString(10);}
+			  
 			  var pointer= 0;
 
 
@@ -310,19 +329,10 @@ HTMLWidgets.widget({
 				 
 
 			  
-			 function draw_scores() {
-			 
-			  
-              //el.innerHTML = "<div id='link_"+ id + "'>link_"+ id +"</div><div id='" + id + "'></div>";
-
-              //mNav_Line_chart({ data: ds_raw, chart: id, x_ds: "seq_id", y_ds: "20053", width: width, height: height / 3 });
-			  
-			  
-             // el.innerHTML = "<div id='link_"+ id + "'>Hoover over a point.</div><div id='" + id + "'></div>";
-
+			 function draw_scores() {						  
 			 var height_reduce = 0;
 			 
-			  el.innerHTML = "ID: <div id='link_"+ id + "' style='display:inline'>Hoover over a point.</div>";
+			  el.innerHTML = "ID: <div id='link_"+ id + "' style='display:inline'>Hover over a point.</div>";
               if (xin.show_diff==true)
 			  {	//el.innerHTML = el.innerHTML +  "<div class='row'>";
 	           //el.innerHTML = el.innerHTML +  "<div class='col-sm-4'>Data</div>";
@@ -336,25 +346,16 @@ HTMLWidgets.widget({
                  height_reduce				 =10;
 				 }
 			  el.innerHTML = el.innerHTML + "<div id='" + id + "'></div>";
-
-			  
-			  
-             // mNav_Line_chart({ data: ds, chart: id, x_ds: "seq_id", y_ds: "20053", width: width, height: height / 3 });
-              //mNav_functional_box_plot({ data: ds, chart: id, width: width, height: height / 3 });
-			  //, median_color: xin.median_color
-
  			 if (xin.show_diff==true)
 			 {				 
-			   mNav_functional_box_plot({ data: q_data, chart:  id, width: width/2-22, height: (height/3) - height_reduce, title: "data"  });
-               mNav_functional_box_plot({ data: quantiles_data_diff, chart:  id, width: width/2-22, height: (height/3) - height_reduce, title: "data diff"  });
+			   mNav_functional_box_plot({ data: q_data, chart:  id, width: width/2-22, height: (height/3) - height_reduce, title: "data", ylbl:xin.ylbl , xlbl:xin.xlbl  });
+               mNav_functional_box_plot({ data: quantiles_data_diff, chart:  id, width: width/2-22, height: (height/3) - height_reduce, title: "data diff", ylbl:xin.ylbl , xlbl:xin.xlbl  });
 			 }
 			 else
 		  	 {
-			   mNav_functional_box_plot({ data: q_data, chart:  id, width: width, height: (height/3) - height_reduce  });
+			   mNav_functional_box_plot({ data: q_data, chart:  id, width: width, height: (height/3) - height_reduce , ylbl:xin.ylbl , xlbl:xin.xlbl});
 			 }
-			 // console.log("xin.dim_scores");
-			 // console.log(xin.dim_scores);
-			  
+		  
 			  if (xin.dim_scores>=4)
 			  {
 			  mNav_scatter_plot({
@@ -439,40 +440,23 @@ HTMLWidgets.widget({
                   else
                       {
 					 	if (xin.show_diff==true)
-						 {				 
+						 {	
+
+					       
 							mNav_functional_box_plot_with_line({
 							data: q_data, ds_raw: ds_raw, chart: id, width: width/2-22, height: (height/3) - height_reduce , 
-							line_id: d3.select("#link_" + id).html()                  
+							line_id: d3.select("#link_" + id).html(), title: "data" , ylbl:xin.ylbl , xlbl:xin.xlbl               
 							});     
 							mNav_functional_box_plot_with_line({
 							data: quantiles_data_diff, ds_raw: data_difff, chart: id, width: width/2-22, height: (height/3) - height_reduce , 
-							line_id: d3.select("#link_" + id).html()                  
-							});   
-							
-							
-		//console.log("data_difff ---!!!");
-		//console.log(data_difff);
-		//console.log("ds_raw ---!!!");
-		// console.log(ds_raw);	
-//data_difff=ds_raw;
-//if (ds_raw==data_difff)
-//{}	
-//else
-//{}			
-							
-							//mNav_functional_box_plot_with_line({
-							//data: quantiles_data_diff, ds_raw: data_diff, chart: id, width: width/2-22, height: height / 3, 
-							//line_id: d3.select("#link_" + id).html() //                  
-							//}); 	
-
-
-							
+							line_id: d3.select("#link_" + id).html() , title: "data diff"   , ylbl:xin.ylbl , xlbl:xin.xlbl              
+							});   					
 						 }
 						else
 						 {
 						   	mNav_functional_box_plot_with_line({
 							data: q_data, ds_raw: ds_raw, chart: id, width: width, height: (height/3) - height_reduce , 
-							line_id: d3.select("#link_" + id).html()                  
+							line_id: d3.select("#link_" + id).html(), ylbl:xin.ylbl , xlbl:xin.xlbl                  
 							});  
 						 }	  
 						  
@@ -531,7 +515,7 @@ HTMLWidgets.widget({
  
   				// mNav_functional_box_plot({ data: sliding_quantiles, chart: "quntiles", width: (width)-20, height: (height / 3)-22 });
 				 
-				 mNav_functional_box_plot_with_line({ data: sliding_quantiles, ds_raw: sliding_data, ylbl: "", chart: "quntiles", width: (width)-20, height: (height / 3)-22, 
+				 mNav_functional_box_plot_with_line({ data: sliding_quantiles, ds_raw: sliding_data, ylbl: "", chart: "quntiles", width: (width)-20, height: (height / 3)-22, ylbl:xin.ylbl , xlbl:xin.xlbl,
 					  line_id: d3.select("#link_" + id).html()}); //xin.line_id
 				 
              //     mNav_functional_box_plot_with_line({ data:  sliding_quantiles, ds_raw: sliding_data, chart: "quntiles", 
@@ -703,7 +687,10 @@ HTMLWidgets.widget({
           // working with transfer....
 
               var id = xin.link_id   
-              el.innerHTML = "<div id='link_"+ id + "'>Hoover over a point.</div><div id='" + id + "'></div>";
+			  		if (id =="generate_link_id"			  )
+				    {id = randomString(10);}			  
+
+              el.innerHTML = "<div id='link_"+ id + "'>Hover over a point.</div><div id='" + id + "'></div>";
 
              // mNav_Line_chart({ data: ds, chart: id, x_ds: "seq_id", y_ds: "20053", width: width, height: height / 3 });
               mNav_functional_box_plot({ data: ds, chart: id, width: width, height: height / 3 });
@@ -750,7 +737,10 @@ HTMLWidgets.widget({
 	
 		  if (xin.chart_type == "process scoring") {
           // working with transfer....
-              var id = xin.link_id   
+              var id = xin.link_id  
+					if (id =="generate_link_id"			  )
+				    {id = randomString(10);}			  
+			  
               el.innerHTML = "<div id='link_"+ id + "'>link_"+ id +"</div><div id='" + id + "'></div>";
 
               mNav_Line_chart({ data: ds, chart: id, x_ds: "seq_id", y_ds: "20053", width: width, height: height / 3 });
@@ -797,6 +787,9 @@ HTMLWidgets.widget({
           // 5) sliding scores screen
           if (xin.chart_type == "sliding scores") {
               var id = xin.link_id   
+			  		if (id =="generate_link_id"			  )
+				    {id = randomString(10);}			  
+
               el.innerHTML = "";
 			  el.innerHTML = el.innerHTML +  "<div style='display: inline; width:" + width/3 + "px' id='window'></div>";
 
@@ -856,6 +849,9 @@ HTMLWidgets.widget({
           if (xin.chart_type == "scatter_and_linked_ts") {
 
               var id = xin.link_id
+					if (id =="generate_link_id"			  )
+				    {id = randomString(10);}			  
+			  
               el.innerHTML = "<div id='link_" + id + "'>link_" + id + "</div><div id='" + id + "'></div>";
 
               mNav_Line_chart({ data: ds_raw, chart: id, x_ds: "seq_id", y_ds: "20053", width: width, height: height / 3 });
@@ -891,6 +887,9 @@ HTMLWidgets.widget({
           if (xin.chart_type == "network_and_linked_line") {
 
               var id = xin.link_id 
+			  		if (id =="generate_link_id"			  )
+				    {id = randomString(10);}			  
+
               el.innerHTML = "<div id='link_" + id + "'>link_" + id + "</div><div id='" + id + "'></div>";
 
             //  el.innerHTML = "<div id='p_id'>p_id</div><div id='g1'></div>";

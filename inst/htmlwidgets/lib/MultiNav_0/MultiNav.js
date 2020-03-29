@@ -28,9 +28,6 @@ function mNav_Line_chart(args) {
     var x = d3.scaleLinear()//d3.time.scale()
         .range([0, width]);
 
-    //    var x = d3.time.scale()
-    //     .range([0, width]);
-
     var y = d3.scaleLinear()
         .range([height, 0]);
 
@@ -98,8 +95,7 @@ function mNav_Line_chart(args) {
         .attr("cy", function (d) { return y(d[y_ds]); })
         .attr("opacity", 1)
         .style("fill", function (d) { return "#74add1;" }) //color
-       // .style("fill", function (d) { if (d.grade_auto == "Outlier") { return "Red" } else { if (d.grade_auto == "tbd") { return "Orange" } else { return "Green" } } }) //color
-    }  
+     }  
 }
 
 
@@ -118,7 +114,7 @@ function mNav_scatter_plot(args) {
 
     var width = args.width || 500;
     var height = args.height || width / 1.618;
-    var margin = args.margin || { top: 25, right: 25, bottom: 42, left: 82 };
+    var margin = args.margin || { top: 25, right: 25, bottom: 40, left: 82 };
 
     var color = args.color || "#1f78b4";
     var radius = args.radius || 4;
@@ -129,11 +125,6 @@ function mNav_scatter_plot(args) {
 
     width = width - margin.left - margin.right,
         height = height - margin.top - margin.bottom;
-
-    ////tooltip
-    //var tooltip = d3.select("body").append("div")
-    //               .attr("class", "tooltip")
-    //               .style("opacity", 0);
 
     data.forEach(function (d) {                             //Todo - configurable date field
         Object.keys(data[0]).filter(function (k) { return k != "Date" }).forEach(function (k) {
@@ -195,7 +186,7 @@ function mNav_scatter_plot(args) {
             .append("text")
             .attr("class", "label")
             .attr("x", width)
-            .attr("y", 36)
+            .attr("y", 33)
             .style("text-anchor", "end")
             .text(x_ds);
 
@@ -410,8 +401,6 @@ function mNav_scatter_plot_orig(args) {
             });
 
         }
-
-//need to coypy back!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 function mNav_flex_scatter_uni(args) {
 
@@ -739,24 +728,16 @@ function mNav_functional_box_plot(args) {
 
     var chart = args.chart;
     var quantiles = args.data;
-   // var x_ds = args.x_ds;
-   // var y_ds = args.y_ds;
     var width = args.width || 500;
-    var margin = args.margin || { top: 20, right: 20, bottom: 30, left: 75 };
+    var margin = args.margin || { top: 20, right: 20, bottom: 42, left: 75 };
     var height = args.height || width / 1.618;
 	var median_color = args.median_color || "";
 	var ylbl = args.ylbl || "";
+	var xlbl = args.xlbl || "";
 	var title = args.title || "";
-  //  var color = args.color || "#1f78b4";
-   // var linked = args.linked || false;                    // Activate linked chart
 
     width = width - margin.left - margin.right,
     height = height - margin.top - margin.bottom;
-
-    ////tooltip
-    //var tooltip = d3.select("body").append("div")
-    //               .attr("class", "tooltip")
-    //               .style("opacity", 0);
 
     quantiles.forEach(function (d) {                             //Todo - configurable date field
         Object.keys(quantiles[0]).filter(function (k) { return k != "Date" }).forEach(function (k) {
@@ -825,8 +806,15 @@ function mNav_functional_box_plot(args) {
 		g.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x).ticks(6));
-
+        .call(d3.axisBottom(x).ticks(6))      
+            .append("text")
+            .attr("class", "label")
+            .attr("x", width)
+            .attr("y", 33)
+            .style("text-anchor", "end")
+            .text(xlbl);
+		
+	
 		g.append("g")
         .attr("class", "axis axis--y")
         .call(d3.axisLeft(y)) 
@@ -888,30 +876,17 @@ function mNav_functional_box_plot_with_line(args) {
     var quantiles = args.data;
     var raw_data = args.ds_raw;
     var line_id = args.line_id || 21989;
-    // var x_ds = args.x_ds;
-    // var y_ds = args.y_ds;
     var width = args.width || 500;
-    var margin = args.margin || { top: 20, right: 20, bottom: 30, left: 75 };
+    var margin = args.margin || { top: 20, right: 20, bottom: 42, left: 75 };
     var height = args.height || width / 1.618;
 	var window_link = args.window_link || 0;
 	var ylbl = args.ylbl || "";
-	
-    //  var color = args.color || "#1f78b4";
-    // var linked = args.linked || false;                    // Activate linked chart
+	var xlbl = args.xlbl || "";
+	var title = args.title || "";
 
     width = width - margin.left - margin.right,
         height = height - margin.top - margin.bottom;
 
-    ////tooltip
-    //var tooltip = d3.select("body").append("div")
-    //               .attr("class", "tooltip")
-    //               .style("opacity", 0);
-
-	console.log("======= inside functional ============");
-    // console.log("quantiles");
-    // console.log(quantiles);
-	// console.log("raw_data");
-    // console.log(raw_data);	
     raw_data.forEach(function (d) {                             //Todo - configurable date field
         Object.keys(raw_data[0]).filter(function (k) { return k != "Date" }).forEach(function (k) {
             d[k] = +d[k];
@@ -983,8 +958,15 @@ function mNav_functional_box_plot_with_line(args) {
 		g.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x).ticks(6));
-
+        .call(d3.axisBottom(x).ticks(3))
+            .append("text")
+            .attr("class", "label")
+            .attr("x", width)
+            .attr("y", 33)
+            .style("text-anchor", "end")
+            .text(xlbl);
+		
+		
 		
 		
 		var yAxis = d3.axisLeft(y).ticks(12 * height / width)
@@ -1006,6 +988,9 @@ function mNav_functional_box_plot_with_line(args) {
 				  return d3.format(".3s")(d);
 			    }  
 	    });
+		
+		
+		
 		
 		g.append("g")
         .attr("class", "axis axis--y")
@@ -1102,6 +1087,20 @@ function mNav_functional_box_plot_with_line(args) {
         });
 		}
 
+		// Add chart title
+	
+	if (title!=="")
+	{	
+		g.append("text")
+        .attr("x", (width / 2))  
+        .attr("class", "title")		
+        .attr("y", 0 - (margin.top / 2)+5)
+        .attr("text-anchor", "middle")  
+       // .style("font-size", "16px") 
+        .text(title);
+	}
+
+		
 }
 
 function mNav_spc_chart(args) {

@@ -1,9 +1,10 @@
 Package: MultiNav
 Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+Version: 0.0.1.1000
+Authors@R: person("Efrat", "Vilenski", email = "efratvil@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 Depends: R (>= 3.3.1), MASS, robustbase, huge
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 6.0.1
