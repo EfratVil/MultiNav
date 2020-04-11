@@ -7,7 +7,7 @@
 Calc_uni_matrix(data, op = FALSE)
 }
 \arguments{
-\item{data}{dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale. A unique numeric row name should be assigned to each observation and will be used as unique identifier (id). A unique numeric column name should be assigned to each variable.}
+\item{data}{Matrix, data.table or data.frame. Containing continuous variables. A unique numeric row name should be assigned to each observation and will be used as unique identifier (id). A unique numeric column name should be assigned to each variable.}
 
 \item{op}{Logical, if TRUE, boxcox transformation is calculated for each descriptive statistic. In addition outlier flag is added per each descriptive statistic, with value 1 to indicate outlier, 0 to indicate inliner. The outlier flag is set according to 3 sigma control limits.}
 }
@@ -28,4 +28,7 @@ head(uni_matrix)
 uni_matrix<-Calc_uni_matrix(data, op=TRUE)
 head(uni_matrix)
 
+}
+\seealso{
+\code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{Calc_quantiles_matrix}}, \code{\link[MultiNav]{extract_sd0}}, \code{\link[MultiNav]{sliding_window_scores}}
 }

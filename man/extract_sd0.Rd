@@ -7,10 +7,10 @@
 extract_sd0(data)
 }
 \arguments{
-\item{data}{dataset in the format of data.table, data.frame or matrix which contains continuous variables.}
+\item{data}{Matrix, data.table or data.frame. Containing continuous variables.}
 }
 \value{
-Returns a data.table, data.frame or matrix (in th same format as the input data).
+Returns a data.table, data.frame or matrix (in the same format as the input data).
 }
 \description{
 Data pre-processing utility function. Removes from a given dataset all rows and columns that have 0 standard deviation.
@@ -20,6 +20,14 @@ Function that can be used as pre-processing step.
 }
 \examples{
 data <- DendrometerSensors
-extract_sd0(data)
 
+# dimentions before pre-processing
+dim(data)
+new_data<-extract_sd0(data)
+# dimentions after pre-processing
+dim(new_data)
+
+}
+\seealso{
+\code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{Calc_uni_matrix}}, \code{\link[MultiNav]{Calc_quantiles_matrix}},  \code{\link[MultiNav]{sliding_window_scores}}
 }

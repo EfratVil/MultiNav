@@ -5,49 +5,72 @@
 #'
 #' @usage MultiNav (data = NULL, type = NULL, scores = NULL, quantiles = NULL, window=NULL, ...)
 #'
-#' @param data A continuous dataset to be analyzed, where rows correspond to equally spaced time observations and columns correspond to different variables (such as readings from different sensors). The data input can be object of class matrix, data.table or data.frame.
+#' @param data A continuous dataset to be analyzed, where  columns correspond to different variables (such as readings from different sensors) and rows correspond to observations (such as sensor's readings from diffrent times). The data input can be object of class matrix, data.table or data.frame.
 #' @param type Character, indicating which display method to invoke. Currently, one interactive screen is supported, named \code{"scores"} and several base charts are supported, named: \code{"line"}, \code{"scatter"}, \code{"network"}, \code{"functional_box"}.
 #' @param window Integer, indicating the size of the temporal window for which scores will be calculated. If omitted, the default is one temporal window (that contains all the data).
-#' @param scores Dataset, containing calculated anomaly scores per sensor (dataset variables). If not specified, default univariate scores (quantiles 0.25, 0.5, 0.75 and MAD) will be calculated. Additionally two default multivariate score sets are supported, named: "mv" and "T2_Variations".
-#' @param quantiles Dataset, containing custom quantiles used for creating the functional box plot background.
-#' @param ,,, Other arguments passed on to methods.
+#' @param scores Matrix, data.table or data.frame. Containing calculated anomaly scores per sensor (variable). If not specified, default univariate scores (quantiles 0.25, 0.5, 0.75 and MAD) will be calculated (with the help of \code{\link[MultiNav]{Calc_uni_matrix}} function). Additionally two default multivariate score sets are supported, named: "mv" and "T2_Variations".
+#' @param quantiles Matrix, data.table or data.frame. Containing custom quantiles used for creating the functional box plot background. \code{\link[MultiNav]{Calc_quantiles_matrix}} function can be used for creating custom quantiles. If set to NULL, default quntiles are calculated (5, 25, 50, 75, 95).
+#' @param ... Other arguments passed on to methods.
 #'
 #' @examples
 #' library(MultiNav)
 #'
+#'  # Note: Additional documentation and examples available online
+#'  #       http://efratvil.github.io/MultiNav/Documentation/index.html
+#'
+#'
 #' # "scores" display with default univariate scores set
-#' data <- DendrometerSensors
-#' MultiNav(data, type = "scores")
+#' # ---------------------------------------------------
+#' # Loading the dendrometers dataset.
+#'   data <- DendrometerSensors
+#'
+#' # Calling MultiNav "scores" display.
+#'   MultiNav(data, type = "scores")
 #'
 #' # "scores" display with "mv" default multivariate scores set
-#' data<-LambsWeight
-#' window<-3
-#' data.3D<-data[(dim(data)[2]-window+1):dim(data)[2],]
-#' MultiNav(data.3D,type = "scores", scores = "mv")
+#' # ------------------------------------------------------------
+#' # Loading the lambs dataset.
+#'   data <- LambsWeight
 #'
-#' # "scores" display with "T2_Variations" default multivariate scores set
-#' MultiNav(data.3D,type = "scores", scores = "T2_Variations")
+#'   window <- 3
+#' # Subsetting the last 3 days of data.
+#'   data.3D<-data[(dim(data)[2]-window+1):dim(data)[2],]
+#' # Calling MultiNav "scores" display with "mv" scores set.
+#'   MultiNav(data.3D,type = "scores", scores = "mv")
 #'
-#' #Passing custom scores
-#' quantile_25 <- apply(data,2,quantile,probs=0.25,na.rm = TRUE)
-#' median <- apply(data,2,median,na.rm = TRUE)
-#' quantile_75 <- apply(data,2,quantile,probs=0.75,na.rm = TRUE)
-#' mad<- apply(data,2,mad,na.rm = TRUE)
-#' anomaly.scores<- cbind(id=as.numeric(colnames(data)),
+#' # Calling scores" display with "T2_Variations" scores set.
+#'   MultiNav(data.3D,type = "scores", scores = "T2_Variations")
+#'
+#' # Passing custom scores
+#' # ----------------------
+#' # Calculating custom scores per sensor.
+#'   quantile_25 <- apply(data,2,quantile,probs=0.25,na.rm = TRUE)
+#'   median <- apply(data,2,median,na.rm = TRUE)
+#'   quantile_75 <- apply(data,2,quantile,probs=0.75,na.rm = TRUE)
+#'   mad<- apply(data,2,mad,na.rm = TRUE)
+#'   anomaly.scores<- cbind(id=as.numeric(colnames(data)),
 #'                        quantile_25,median,quantile_75,mad)
-#' head(anomaly.scores)
-#' MultiNav(data,type = "scores", scores = anomaly.scores)
+#' # Viewing the calculated scores.
+#'   head(anomaly.scores)
+#' # Calling scores" display with custom scores set.
+#'   MultiNav(data,type = "scores", scores = anomaly.scores)
 #'
-#' #Passing custom quantiles
-#' quantiles_matrix<-Calc_quantiles_matrix(data)
-#' head(quantiles_matrix)
-#' MultiNav(data,type = "scores", quantiles=quantiles_matrix)
+#' # Passing custom quantiles
+#' # ------------------------
+#' # Calculating custom quantiles.
+#'   quantiles_matrix<-Calc_quantiles_matrix(data)
+#' # Viewing the calculated quantiles.
+#'   head(quantiles_matrix)
+#' # Calling scores" display with custom quantiles.
+#'   MultiNav(data,type = "scores", quantiles=quantiles_matrix)
 #'
-#' # Examine historical scores per sensor (click on sensor score to view historical scores).
-#' MultiNav(data,type = "scores", scores = "mv",window=3)
+#' # Examine historical scores per sensor
+#' # ------------------------------------
+#' # Calling scores" display with historical scores.
+#'   MultiNav(data,type = "scores", scores = "mv",window=3)
+#' # Note: Click on a sensor score to view historical scores.
 #'
-#'
-#' @import htmlwidgets
+#' @seealso \code{\link[MultiNav]{Calc_uni_matrix}}, \code{\link[MultiNav]{Calc_quantiles_matrix}}, \code{\link[MultiNav]{extract_sd0}}, \code{\link[MultiNav]{sliding_window_scores}}, \code{\link[MultiNav]{T2}}
 #'
 #' @export
 
@@ -55,28 +78,16 @@
 MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL, window=NULL,sliding_scores=NULL,
                      link_id = NULL, raw_data= NULL, line_id = NULL, show_diff= FALSE, xlbl=NULL, ylbl=NULL
                      ) {
-
-
   # Check inputs
   # ============
   if( !(class(data)[1] == "matrix" || class(data)!="data.frame" || class(data)[1]!="data.table" )) stop('not data.frame or data.table')
 
-  #TODO - add cond, method = "mv"
-  #if( !(dim(data)[1] < dim(data)[2])) stop('n < p, can not calculate MCD cov estimator.')
-
-  #TODO - add check that 'type' was provided
-  #TODO - check that either scores or sliding_scores were provided
-  #TODO - sliding_scores provided with window -warining that window will be ignored
-
-
-  # todo check for NAs introduced by coercion
   if (class(data)[1] == "matrix") {
     data<-as.data.frame(data)
   }
 
   if (class(scores)[1] == "matrix") {
     scores<-as.data.frame(scores)
-
   }
 
   if (class(quantiles)[1] == "matrix") {
@@ -137,31 +148,24 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
   attributes<-  NULL
   median_color<-  NULL
 
-
   #======================== Displays ============================
 
   #==================== snapshot scores =========================
 
   if (type=="scores")    #"snapshot scores"
   {
-
     #===================================
     #     1) Check input parameters
     #===================================
 
     # check data
-    # print(paste("n: ", dim(data)[1]))
-    # print(paste("p: ", dim(data)[2]))
-
-
     if(is.null(window) & is.null(sliding_scores))
     {
-
       if( is.null(scores))
       #case=1
         {
         case<-1
-        # print("case 1 - no window, no scores, need defult scores")
+        # ===== case 1 - no window, no scores, need defult scores =====
         # no scores were provided - Default scores are calculated
 
         dim_scores<-4
@@ -174,7 +178,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
         s4<- "mad"
 
         scores.ds <-scores
-
       }
 
       else if(!is.null(scores) & length(scores) == 1  )
@@ -183,14 +186,13 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
         case<-2
         if( !(class(scores)=="character")) stop('not valid scores parameter')
 
-        # print("case 2 - no window, scores requested")
+        # ===== case 2 - no window, scores requested") =====
 
         if( dim(data)[1]>dim(data)[2]) stop('Calculating multivariate score per sensor (variable) requiers more sensors then time periods.')
 
         if(class(scores) == "character" & scores == "mv") {
 
           scores<-as.data.frame(cbind(id=as.numeric(colnames(data)), T2_mcd75=T2_mcd75(t(data)), EigenCent=EigenCentrality(data)))
-
         }
 
         else if((class(scores) == "character" & scores == "T2_Variations")) {
@@ -198,12 +200,10 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
           scores<-as.data.frame(cbind(id=as.numeric(colnames(data)),
                                       T2_mcd50=T2_mcd50(t(data)),
                                       T2_mcd75=T2_mcd75(t(data)),
-                                      T2_CrouxOllerer=T2_CrouxOllerer(t(data)),
-                                      T2_SrivastavaDu=T2_SrivastavaDu(t(data))
+                                      T2_croux_ollerer=T2_croux_ollerer(t(data)),
+                                      T2_srivastava_du=T2_srivastava_du(t(data))
           ))
-
         }
-
       }
 
       # Check if default scores were requested
@@ -212,16 +212,11 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
       #case 3
         {
         case<-3
-        #print("case 3 - no window, scores provided as tabular input")
-
-        # TODO - check if scores were provided as a valid data.frame, data.table or matrix
-        # TODO - check if scores contain id field and then upto 4 numeric scores fields
+        #===== case 3 - no window, scores provided as tabular input")=====
       }
-
-
     }
     else  # window was set
-    { #Todo: check if window is integer
+    {
       #===================================
       #     sliding scores
       #===================================
@@ -230,13 +225,12 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
       # case 4
         {
         case<-4
-        #print("case 4 - window, no scores, need defult scores")
+        #===== case 4 - window, no scores, need defult scores") =====
 
         # defualt scores are calculated
         sliding_scores<-sliding_window_scores(data,window)
         sliding_quantiles<-Calc_quantiles_matrix(data)
         sliding_data <- data<-cbind(seq_id=as.numeric(row.names(data)), data)
-
 
         last_scores <- sliding_scores[sliding_scores$window==max(sliding_scores$window),]
         scores<-last_scores
@@ -259,7 +253,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
         score2_wide<-cbind(seq_id=as.numeric(row.names(score2_wide)), score2_wide)
         quantiles_s2<-Calc_quantiles_matrix(as.data.frame(score2_wide))
 
-
         # quantile_25
         score3_wide<- reshape2::dcast(sliding_scores[,c(1,2,5)], window~id,value.var="quantile_25")
         score3_wide[,1]<-NULL
@@ -273,24 +266,17 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
         quantiles_s4<-Calc_quantiles_matrix(as.data.frame(score4_wide))
 
         data<-data[(dim(data)[1]-window+1):dim(data)[1],]
-
       }
 
       else if(!is.null(scores) & class(scores)=="character")
       # case 5
       {
         case<-5
-        #print("case 5 - window, scores requested")
-
+        # ===== case 5 - window, scores requested") =====
 
          if( class(scores)=="character" & scores=="mv") {
 
           sliding_scores<-sliding_window_scores(data, window, scores="mv")
-
-#          data_diff<- apply(data, 2, diff)
-
-#          sliding_quantiles<-Calc_quantiles_matrix(data_diff)
-#          sliding_data <- data<-cbind(seq_id=as.numeric(row.names(data_diff)), data_diff)
 
           sliding_quantiles<-Calc_quantiles_matrix(data)
           sliding_data <- data<-cbind(seq_id=as.numeric(row.names(data)), data)
@@ -311,12 +297,9 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
           score2_wide<-cbind(seq_id=as.numeric(row.names(score2_wide)), score2_wide)
           quantiles_s2<-Calc_quantiles_matrix(as.data.frame(score2_wide))
 
-
-
           data<-data[(dim(data)[1]-window+1):dim(data)[1],]
           scores<-last_scores
           scores$window <- NULL
-
         }
 
         else if( class(scores)=="character" & scores=="T2_Variations") {
@@ -328,8 +311,8 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
           last_scores <- sliding_scores[sliding_scores$window==max(sliding_scores$window),]
           s1<-"T2_mcd50"
           s2<-"T2_mcd75"
-          s3<-"T2_CrouxOllerer"
-          s4<-"T2_SrivastavaDu"
+          s3<-"T2_croux_ollerer"
+          s4<-"T2_srivastava_du"
 
           # T2_mcd50
           score1_wide<- reshape2::dcast(sliding_scores[,c(1,2,3)], window~id, value.var ="T2_mcd50")
@@ -343,14 +326,14 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
           score2_wide<-cbind(seq_id=as.numeric(row.names(score2_wide)), score2_wide)
           quantiles_s2<-Calc_quantiles_matrix(as.data.frame(score2_wide))
 
-          # T2_CrouxOllerer
-          score3_wide<- reshape2::dcast(sliding_scores[,c(1,2,5)], window~id, value.var ="T2_CrouxOllerer")
+          # T2_croux_ollerer
+          score3_wide<- reshape2::dcast(sliding_scores[,c(1,2,5)], window~id, value.var ="T2_croux_ollerer")
           score3_wide[,1]<-NULL
           score3_wide<-cbind(seq_id=as.numeric(row.names(score3_wide)), score3_wide)
           quantiles_s3<-Calc_quantiles_matrix(as.data.frame(score3_wide))
 
-          # T2_SrivastavaDu
-          score4_wide<- reshape2::dcast(sliding_scores[,c(1,2,6)], window~id, value.var ="T2_SrivastavaDu")
+          # T2_srivastava_du
+          score4_wide<- reshape2::dcast(sliding_scores[,c(1,2,6)], window~id, value.var ="T2_srivastava_du")
           score4_wide[,1]<-NULL
           score4_wide<-cbind(seq_id=as.numeric(row.names(score4_wide)), score4_wide)
           quantiles_s4<-Calc_quantiles_matrix(as.data.frame(score4_wide))
@@ -359,7 +342,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
           scores<-last_scores
           scores$window <- NULL
         }
-
       }
 
       # Check if default scores were requested
@@ -367,13 +349,7 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
                (class(sliding_scores)[1] == "matrix" || class(sliding_scores)=="data.frame" || class(sliding_scores)[1]=="data.table" ) )
       # case 6
       { case<-6
-        #print("case 6 - sliding scores provided as tabular input")
-
-        # TODO - check if scores were provided as a valid data.frame, data.table or matrix
-        # TODO - check if scores contain id field and then upto 4 numeric scores fields
-
-
-
+        #===== "case 6 - sliding scores provided as tabular input") =====
         dim_scores<-dim(sliding_scores)[2]-2
         sliding_quantiles<-Calc_quantiles_matrix(data)
         sliding_data <- data<-cbind(seq_id=as.numeric(row.names(data)), data)
@@ -383,7 +359,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
         scores$window<-NULL
         window<-dim(scores)[1]
 
-
         if (dim_scores ==1)
         {
           s1<-names(sliding_scores)[3]
@@ -392,7 +367,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
           score1_wide<-cbind(seq_id=as.numeric(row.names(score1_wide)), score1_wide)
           quantiles_s1<-Calc_quantiles_matrix(as.data.frame(score1_wide))
         }
-
 
         if (dim_scores ==2)
         {
@@ -407,9 +381,7 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
           score2_wide[,1]<-NULL
           score2_wide<-cbind(seq_id=as.numeric(row.names(score2_wide)), score2_wide)
           quantiles_s2<-Calc_quantiles_matrix(as.data.frame(score2_wide))
-
         }
-
 
         if (dim_scores ==3)
         {
@@ -458,29 +430,15 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
           score4_wide[,1]<-NULL
           score4_wide<-cbind(seq_id=as.numeric(row.names(score4_wide)), score4_wide)
           quantiles_s4<-Calc_quantiles_matrix(as.data.frame(score4_wide))
-
         }
-
-
       }
-
-
-
     }
-
-
 
     #===================================
     #     1) Set scores cont.
     #===================================
 
     # Setting the scores dataset
-    # if (is.null(scores) & is.null(scores_funcs)){
-    #  }
-    #  else { #TODO --> check if first col is id. if not, start from 1
-
-    #  uni_matrix<-scores
-
 
       dim_scores<-dim(scores)[2]
       if (dim_scores==2 )
@@ -503,25 +461,16 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
         s2<- names(scores)[3]
         s3<- names(scores)[4]
         s4<- names(scores)[5]
-
       }
-
       scores.ds <-scores
-
-
-
-      # }
 
     #-------------------------------------
     #             quantiles
     #-------------------------------------
-
     #no quantiles were provided
     if (is.null(quantiles)){
 
       quantiles_matrix<-Calc_quantiles_matrix(as.data.frame(data))
-
-
     }
     else {
       quantiles_matrix = quantiles
@@ -530,7 +479,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
     #-------------------------------------
     #             finalizing
     #-------------------------------------
-    #TODO - check if seq_id exists
     data<-cbind(seq_id=as.numeric(row.names(data)), data)
 
       # Data inspection was requested. adding data diff calc
@@ -540,16 +488,13 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
         quantiles_data_diff<-Calc_quantiles_matrix(as.data.frame(data_difff))
 
         data_difff<-cbind(seq_id=as.numeric(row.names(data_difff)), data_difff)
-
       }
 
     raw_data<-data
     data<-scores.ds #uni_matrix
     q_data<-quantiles_matrix
 
-
     type <- "scatter_and_linked_line2"
-
   }
 
 
@@ -557,11 +502,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
   if (type=="sliding scores")
   {
     sliding_scores<-data
-    # First check if sliding scores data were passed or need to calculate
-    #if (is.null(scores)){
-    #}
-    # else { #TODO --> check if first col is id. if not, start from 1
-    # }
 
     last_scores <- sliding_scores[sliding_scores$window==max(sliding_scores$window),]
 
@@ -581,7 +521,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
     score2_wide[,1]<-NULL
     score2_wide<-cbind(seq_id=as.numeric(row.names(score2_wide)), score2_wide)
     quantiles_s2<-Calc_quantiles_matrix(as.data.frame(score2_wide))
-
 
     # quantile_25
     score3_wide<- reshape2::dcast(sliding_scores[,c(1,2,5)], window~id,value.var="quantile_25")
@@ -606,8 +545,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
   {
     q_data<-quantiles
   }
-
-
 
   # forward options using x
   x = list(
@@ -647,7 +584,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
     sliding_quantiles = sliding_quantiles,
     sliding_data = sliding_data,
     dim_scores = dim_scores,
-    #scores_funcs = scores_funcs,
     quantiles = quantiles,
     quantiles_cum = quantiles_cum,
     quantiles_diff= quantiles_diff,
@@ -662,8 +598,6 @@ MultiNav <- function(data, type, x= NULL, y= NULL, scores= NULL, quantiles= NULL
     quantiles_s3=quantiles_s3,          # sliding scores
     quantiles_s4=quantiles_s4           # sliding scores
   )
-
-
 
   # create widget
   htmlwidgets::createWidget(
@@ -704,73 +638,6 @@ renderMultiNav <- function(expr, env = parent.frame(), quoted = FALSE) {
   htmlwidgets::shinyRenderWidget(expr, MultiNavOutput, env, quoted = TRUE)
 }
 
-#
-# if (type=="process scoring")
-# {
-#
-#   uni_matrix<-Calc_uni_matrix(as.data.frame(data))
-#   quantiles_matrix<-Calc_quantiles_matrix(as.data.frame(data))
-#   data<-cbind(seq_id=as.numeric(row.names(data)), data)
-#
-#   raw_data<-data
-#   data<-uni_matrix
-#   q_data<-quantiles_matrix
-#
-#
-#   s1<-"median"
-#   s2<- "mad"
-#   s3<- "quantile_25"
-#   s4<- "quantile_75"
-#   type <- "scatter_and_linked_line2"
-# }
 
 
-# if (type=="uni_signal")
-# {
-#   vec<-data[,c("29397")]
-#   mat<-Uni_to_Multi(vec,24,1)$mat
-#   T2<- T2(mat)
-#   T2<-as.data.frame(cbind(id=seq(1:length(T2)),T2=T2))
-#   T2_rob<- T2(mat, cov="mcd")
-#   T2_rob<-as.data.frame(cbind(id=seq(1:length(T2_rob)),T2=T2_rob))
-# }
-#
 
-# if (type=="overview")
-# {
-#   quantiles<-Calc_quantiles_matrix(as.data.frame(data))
-#   diff_data<-apply(data, 2, diff)
-#   quantiles_diff<-Calc_quantiles_matrix(as.data.frame(diff_data))
-#
-#   #Preprocessing for explore1
-#   scores<-Calc_uni_matrix(as.data.frame(data))
-#   s1<-"median"
-#   s2<- "mad"
-#   s3<- "quantile_25"
-#   s4<- "quantile_75"
-#
-#   data<-cbind(seq_id=as.numeric(row.names(data)), data)
-#
-# }
-
-# #------------- 1111111111111111111111111111111 -------------
-#   if (type=="Transformations View")
-# {
-#   quantiles<-Calc_quantiles_matrix(as.data.frame(data))
-#   q_mad_median <- round(mad(quantiles$median),2)
-#
-#   diff_data<-apply(data, 2, diff)
-#   quantiles_diff<-Calc_quantiles_matrix(as.data.frame(diff_data))
-#   qd_mad_median <- round(mad(quantiles_diff$median),2)
-#
-#   diff_diff_data<-apply(diff_data, 2, diff)
-#   quantiles_diff_diff<-Calc_quantiles_matrix(as.data.frame(diff_diff_data))
-#   qdd_mad_median <- round(mad(quantiles_diff_diff$median),2)
-#
-#   cum_data<-apply(data, 2, cumsum)
-#   quantiles_cum<-Calc_quantiles_matrix(as.data.frame(cum_data))
-#   qc_mad_median <- round(mad(quantiles_cum$median),2)
-#
-#   data<-cbind(seq_id=as.numeric(row.names(data)), data)
-#
-# }

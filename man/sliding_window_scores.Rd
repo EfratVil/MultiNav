@@ -7,17 +7,17 @@
 sliding_window_scores(data, window, scores = NULL)
 }
 \arguments{
-\item{data}{dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale.}
+\item{data}{Matrix, data.table or data.frame. Containing continuous variables.}
 
 \item{window}{Integer, indicating the size of the temporal window for which scores will be calculated (in a sliding window manner).}
 
 \item{scores}{Character, specifies which scores set to calculate. If not specified, default univariate scores (quantiles 0.25, 0.5, 0.75 and MAD) will be calculated. Additionally two default multivariate score sets are supported, named: "mv" and "T2_Variations".}
 }
 \value{
-Returns a data.table, data.frame or matrix (in th same format as the input data).
+Returns a data.table, data.frame or matrix (in the same format as the input data).
 }
 \description{
-Data pre-processing utility function. Calculate sliding window scores for default scores sets.
+Data pre-processing utility function. Calculates sliding window scores for default scores sets.
 }
 \details{
 Function that can be used as pre-processing step, to calculate sliding window scores per sensor (variable).
@@ -37,4 +37,7 @@ head(scores)
 scores<-sliding_window_scores(data,14,scores="mv")
 head(scores)
 
+}
+\seealso{
+\code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{Calc_uni_matrix}}, \code{\link[MultiNav]{Calc_quantiles_matrix}}, \code{\link[MultiNav]{extract_sd0}}
 }

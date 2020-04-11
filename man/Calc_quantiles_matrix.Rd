@@ -7,7 +7,7 @@
 Calc_quantiles_matrix(data, quantiles = c(0.05, 0.25, 0.75, 0.95))
 }
 \arguments{
-\item{data}{dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale. A unique numeric row name should be assigned to each observation and will be used as unique identifier (id). If row names were not assigned, row number will be used as id. A unique numeric column name should be assigned to each variable.}
+\item{data}{Matrix, data.table or data.frame. Containing continuous variables. A unique numeric row name should be assigned to each observation and will be used as unique identifier (id). If row names were not assigned, row number will be used as id. A unique numeric column name should be assigned to each variable.}
 
 \item{quantiles}{Optional argument. Gives option to specify custom quantiles instead of the default: quantiles = c(0.05, 0.25, 0.75, 0.95).}
 }
@@ -30,4 +30,7 @@ head(quantiles_matrix)
 quantiles_matrix<-Calc_quantiles_matrix(data, quantiles = c(0.02,0.2,0.8,0.98))
 head(quantiles_matrix)
 
+}
+\seealso{
+\code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{Calc_uni_matrix}}, \code{\link[MultiNav]{extract_sd0}}, \code{\link[MultiNav]{sliding_window_scores}}
 }

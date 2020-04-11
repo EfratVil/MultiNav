@@ -7,17 +7,17 @@
 MultiNav (data = NULL, type = NULL, scores = NULL, quantiles = NULL, window=NULL, ...)
 }
 \arguments{
-\item{data}{A continuous dataset to be analyzed, where rows correspond to equally spaced time observations and columns correspond to different variables (such as readings from different sensors). The data input can be object of class matrix, data.table or data.frame.}
+\item{data}{A continuous dataset to be analyzed, where  columns correspond to different variables (such as readings from different sensors) and rows correspond to observations (such as sensor's readings from diffrent times). The data input can be object of class matrix, data.table or data.frame.}
 
 \item{type}{Character, indicating which display method to invoke. Currently, one interactive screen is supported, named \code{"scores"} and several base charts are supported, named: \code{"line"}, \code{"scatter"}, \code{"network"}, \code{"functional_box"}.}
 
-\item{scores}{Dataset, containing calculated anomaly scores per sensor (dataset variables). If not specified, default univariate scores (quantiles 0.25, 0.5, 0.75 and MAD) will be calculated. Additionally two default multivariate score sets are supported, named: "mv" and "T2_Variations".}
+\item{scores}{Matrix, data.table or data.frame. Containing calculated anomaly scores per sensor (variable). If not specified, default univariate scores (quantiles 0.25, 0.5, 0.75 and MAD) will be calculated (with the help of \code{\link[MultiNav]{Calc_uni_matrix}} function). Additionally two default multivariate score sets are supported, named: "mv" and "T2_Variations".}
 
-\item{quantiles}{Dataset, containing custom quantiles used for creating the functional box plot background.}
+\item{quantiles}{Matrix, data.table or data.frame. Containing custom quantiles used for creating the functional box plot background. \code{\link[MultiNav]{Calc_quantiles_matrix}} function can be used for creating custom quantiles. If set to NULL, default quntiles are calculated (5, 25, 50, 75, 95).}
 
 \item{window}{Integer, indicating the size of the temporal window for which scores will be calculated. If omitted, the default is one temporal window (that contains all the data).}
 
-\item{, , , }{Other arguments passed on to methods.}
+\item{...}{Other arguments passed on to methods.}
 }
 \description{
 MultiNav() function for calling MultiNav's interactive visualization screens and base charts.
@@ -25,36 +25,62 @@ MultiNav() function for calling MultiNav's interactive visualization screens and
 \examples{
 library(MultiNav)
 
+ # Note: Additional documentation and examples available online
+ #       http://efratvil.github.io/MultiNav/Documentation/index.html
+
+
 # "scores" display with default univariate scores set
-data <- DendrometerSensors
-MultiNav(data, type = "scores")
+# ---------------------------------------------------
+# Loading the dendrometers dataset.
+  data <- DendrometerSensors
+
+# Calling MultiNav "scores" display.
+  MultiNav(data, type = "scores")
 
 # "scores" display with "mv" default multivariate scores set
-data<-LambsWeight
-window<-3
-data.3D<-data[(dim(data)[2]-window+1):dim(data)[2],]
-MultiNav(data.3D,type = "scores", scores = "mv")
+# ------------------------------------------------------------
+# Loading the lambs dataset.
+  data <- LambsWeight
 
-# "scores" display with "T2_Variations" default multivariate scores set
-MultiNav(data.3D,type = "scores", scores = "T2_Variations")
+  window <- 3
+# Subsetting the last 3 days of data.
+  data.3D<-data[(dim(data)[2]-window+1):dim(data)[2],]
+# Calling MultiNav "scores" display with "mv" scores set.
+  MultiNav(data.3D,type = "scores", scores = "mv")
 
-#Passing custom scores
-quantile_25 <- apply(data,2,quantile,probs=0.25,na.rm = TRUE)
-median <- apply(data,2,median,na.rm = TRUE)
-quantile_75 <- apply(data,2,quantile,probs=0.75,na.rm = TRUE)
-mad<- apply(data,2,mad,na.rm = TRUE)
-anomaly.scores<- cbind(id=as.numeric(colnames(data)),
+# Calling scores" display with "T2_Variations" scores set.
+  MultiNav(data.3D,type = "scores", scores = "T2_Variations")
+
+# Passing custom scores
+# ----------------------
+# Calculating custom scores per sensor.
+  quantile_25 <- apply(data,2,quantile,probs=0.25,na.rm = TRUE)
+  median <- apply(data,2,median,na.rm = TRUE)
+  quantile_75 <- apply(data,2,quantile,probs=0.75,na.rm = TRUE)
+  mad<- apply(data,2,mad,na.rm = TRUE)
+  anomaly.scores<- cbind(id=as.numeric(colnames(data)),
                        quantile_25,median,quantile_75,mad)
-head(anomaly.scores)
-MultiNav(data,type = "scores", scores = anomaly.scores)
+# Viewing the calculated scores.
+  head(anomaly.scores)
+# Calling scores" display with custom scores set.
+  MultiNav(data,type = "scores", scores = anomaly.scores)
 
-#Passing custom quantiles
-quantiles_matrix<-Calc_quantiles_matrix(data)
-head(quantiles_matrix)
-MultiNav(data,type = "scores", quantiles=quantiles_matrix)
+# Passing custom quantiles
+# ------------------------
+# Calculating custom quantiles.
+  quantiles_matrix<-Calc_quantiles_matrix(data)
+# Viewing the calculated quantiles.
+  head(quantiles_matrix)
+# Calling scores" display with custom quantiles.
+  MultiNav(data,type = "scores", quantiles=quantiles_matrix)
 
-# Examine historical scores per sensor (click on sensor score to view historical scores).
-MultiNav(data,type = "scores", scores = "mv",window=3)
+# Examine historical scores per sensor
+# ------------------------------------
+# Calling scores" display with historical scores.
+  MultiNav(data,type = "scores", scores = "mv",window=3)
+# Note: Click on a sensor score to view historical scores.
 
-
+}
+\seealso{
+\code{\link[MultiNav]{Calc_uni_matrix}}, \code{\link[MultiNav]{Calc_quantiles_matrix}}, \code{\link[MultiNav]{extract_sd0}}, \code{\link[MultiNav]{sliding_window_scores}}, \code{\link[MultiNav]{T2}}
 }

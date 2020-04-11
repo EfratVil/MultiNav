@@ -7,7 +7,7 @@
 EigenCentrality(mat)
 }
 \arguments{
-\item{mat}{dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale.}
+\item{mat}{Matrix, data.table or data.frame. Containing continuous variables.}
 }
 \value{
 A vector of numeric scores per each variable.

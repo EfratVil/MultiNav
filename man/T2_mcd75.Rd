@@ -7,7 +7,7 @@
 T2_mcd75(mat)
 }
 \arguments{
-\item{mat}{dataset of continuous variables from the same scale in matrix format.}
+\item{mat}{Matrix, data.table or data.frame. Containing continuous variables.}
 }
 \value{
 A vector of numeric scores per observation (row).
@@ -32,7 +32,10 @@ MultiNav(data,type = "scores", scores = anomaly.scores)
 \references{
 ROUSSEEUW, P. J., et al. Robustbase: basic robust statistics. R package version 0.4-5, URL http://CRAN. R-project. org/package= robustbase, 2009.
 
-Montgomery, Douglas C. Introduction to statistical quality control. John Wiley & Sons, 2007.
+HOTELLING, HAROLD. Multivariate quality control. Techniques of statistical analysis. McGraw-Hill, New York, 1947.
 
 Wilcox, Rand R. Introduction to robust estimation and hypothesis testing. Academic Press, 2012.
+}
+\seealso{
+\code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{T2}}, \code{\link[MultiNav]{T2_mcd50}}, \code{\link[MultiNav]{T2_mve}}, \code{\link[MultiNav]{T2_srivastava_du}}, \code{\link[MultiNav]{T2_croux_ollerer}}
 }

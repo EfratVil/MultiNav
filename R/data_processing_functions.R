@@ -1,72 +1,14 @@
 #===========================================================================================
-# Univariate statistics
+# Data pre processing and anomaly detection functions for MultiNav package.
 # Author   Efrat Vilenski
-# Ver      1.1  Dec 2018
 #===========================================================================================
-# D --> Documentation needed
-# E --> Example needed
-#
-# bc - box cox
-# op - Outier point
-#===========================================================================================
-# TODO - where to put the ref to libs?
-#library(dplyr)
-#library(MASS)
-#library(robustbase)
-#library(huge)
-
-#=================================================================
 #                Vector & Matrix manipulations
 #=================================================================
 #---------------------------------------------------------------
-# D 1.2 Uni_to_Multi
+# vec_to_Matrix
 #---------------------------------------------------------------
-
-# Better name --> vec_to_matrix
-# EOL !!!! uni_to_Multi
-
-# Trasform univariate signal to multivariate rolling window of length x
-Uni_to_Multi <- function(vec, window, step){
-  # ------- Inputs
-  # 1) Univariate vector
-  # 2) Window size
-  # 3) Overlap size
-
-  counter<-0
-  mat <-NULL
-
-  start<-1
-  end <-window
-
-  while(end <= length(vec)) {
-    vec_helper <- vec[start:end]
-    mat <- rbind(mat,vec_helper)
-    counter= counter + 1
-
-    aid <- c(counter, start, (start+end)/2, end)
-
-    if (counter==1)
-    {mat_att<-aid}
-    else
-    {mat_att<-rbind(mat_att, aid)}
-
-    start<-start + step
-    end <- end + step
-
-    next
-  }
-
-  colnames(mat_att) <- c("id", "start", "mid", "end" )
-  rownames(mat_att) <- c(1:dim(mat_att)[1])
-
-  rownames(mat) <- c(1:counter)
-
-  ans <- list("mat" = mat, "mat_att" = mat_att)
-
-  return(ans)
-}
-
-# TODO - mat_att --> make optional with parameter
+# Internal function (fromaly known as Uni_to_Multi())
+# About: Trasform univariate signal to multivariate rolling window of length x
 vec_to_Matrix <- function(vec, window, step){
   # ------- Inputs
   # 1) Univariate vector
@@ -108,7 +50,7 @@ vec_to_Matrix <- function(vec, window, step){
 }
 
 #---------------------------------------------------------------
-# D 1.3 Create cor matrix
+# Create cor matrix
 #---------------------------------------------------------------
 
 `lower.tri<-` <- function(x,value){
@@ -122,9 +64,9 @@ vec_to_Matrix <- function(vec, window, step){
   t(y)
 }
 
+# Internal functions
 # Trasform vector to correlation matrix. The vector contains upper triangle cor values
 # Usefull for creating cor matrix for simulations of data
-
 vec_to_cormat  <- function(vec){
   # ------- Inputs
   # 1) Univariate vector of size n*(n-1)/2, where n is the dimentions of an nxn matrix
@@ -155,10 +97,9 @@ cormat_to_vec  <- function(mat){
 }
 
 
-#---------------------------------------------------------------
-# DE 1.4 Utility functions
-#---------------------------------------------------------------
-
+#===========================================================================================
+# Utility functions
+#===========================================================================================
 # -------- extract_sd0 -------
 #' extract_sd0
 #'
@@ -166,13 +107,20 @@ cormat_to_vec  <- function(mat){
 #'
 #' Function that can be used as pre-processing step.
 #'
-#' @param data dataset in the format of data.table, data.frame or matrix which contains continuous variables.
+#' @param data Matrix, data.table or data.frame. Containing continuous variables.
 #'
-#' @return Returns a data.table, data.frame or matrix (in th same format as the input data).
+#' @return Returns a data.table, data.frame or matrix (in the same format as the input data).
+#'
+#' @seealso \code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{Calc_uni_matrix}}, \code{\link[MultiNav]{Calc_quantiles_matrix}},  \code{\link[MultiNav]{sliding_window_scores}}
 #'
 #' @examples
 #' data <- DendrometerSensors
-#' extract_sd0(data)
+#'
+#' # dimentions before pre-processing
+#' dim(data)
+#' new_data<-extract_sd0(data)
+#' # dimentions after pre-processing
+#' dim(new_data)
 #'
 #' @export
 extract_sd0 <- function(data){
@@ -213,12 +161,12 @@ extract_sd0 <- function(data){
     message(paste (length(sd0_vec), " cols with 0 standard deviation were omitted.", sep=""))
   }
 
-
   return(new.data)
 }
 
 
 # -------- Calculate scores per variable --------
+# Internal function
 variable_scores <- function(data, FUN.list){
   scores<-NULL
   for(j in 1:length(FUN.list))
@@ -230,25 +178,20 @@ variable_scores <- function(data, FUN.list){
 }
 
 
-l2  <- function(x) x^2 %>% sum %>% sqrt
-l1  <- function(x) abs(x) %>% sum
-SS  <- function(x) x^2 %>% sum
-MSE <- function(x) x^2 %>% mean
-
-
-
 # -------- Sliding window scores ----------
 #' sliding_window_scores
 #'
-#' Data pre-processing utility function. Calculate sliding window scores for default scores sets.
+#' Data pre-processing utility function. Calculates sliding window scores for default scores sets.
 #'
 #' Function that can be used as pre-processing step, to calculate sliding window scores per sensor (variable).
 #'
-#' @param data dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale.
+#' @param data Matrix, data.table or data.frame. Containing continuous variables.
 #' @param window Integer, indicating the size of the temporal window for which scores will be calculated (in a sliding window manner).
 #' @param scores Character, specifies which scores set to calculate. If not specified, default univariate scores (quantiles 0.25, 0.5, 0.75 and MAD) will be calculated. Additionally two default multivariate score sets are supported, named: "mv" and "T2_Variations".
 #'
-#' @return Returns a data.table, data.frame or matrix (in th same format as the input data).
+#' @return Returns a data.table, data.frame or matrix (in the same format as the input data).
+#'
+#' @seealso \code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{Calc_uni_matrix}}, \code{\link[MultiNav]{Calc_quantiles_matrix}}, \code{\link[MultiNav]{extract_sd0}}
 #'
 #' @examples
 #' data <- LambsWeight
@@ -267,8 +210,6 @@ MSE <- function(x) x^2 %>% mean
 #'
 #' @export
 sliding_window_scores <- function(data, window, scores=NULL){
-  #TODo - add validations on inputs
-
   # ------- Inputs
   # 1) Multivariate data
   # 2) Window size
@@ -293,12 +234,9 @@ sliding_window_scores <- function(data, window, scores=NULL){
           data1 <- t(data)
           mat <- as.matrix(data1[,(start:end)])
 
-          #print(head(mat[,1:5]))
           set.seed(123)
           T2_mcd75 <- T2_mcd75(mat)
 
-       #   print(length(T2_mcd75))
-      #    print(T2_mcd75[1:10])
           EigenCent<-EigenCentrality(t(mat))
 
           sliding_scores <- rbind(sliding_scores,
@@ -322,13 +260,13 @@ sliding_window_scores <- function(data, window, scores=NULL){
 
           T2_mcd50<-T2_mcd50(mat)
           T2_mcd75 <- T2_mcd75(mat)
-          T2_CrouxOllerer<-T2_CrouxOllerer(mat)
-          T2_SrivastavaDu<-T2_SrivastavaDu(mat)
+          T2_croux_ollerer<-T2_croux_ollerer(mat)
+          T2_srivastava_du<-T2_srivastava_du(mat)
 
 
           sliding_scores <- rbind(sliding_scores,
                                   as.data.frame(cbind(id=as.numeric(rownames(data1)),
-                                                      window=counter, T2_mcd50, T2_mcd75,T2_CrouxOllerer,T2_SrivastavaDu)))
+                                                      window=counter, T2_mcd50, T2_mcd75,T2_croux_ollerer,T2_srivastava_du)))
 
           start<-start + step
           end <- end + step
@@ -368,6 +306,7 @@ sliding_window_scores <- function(data, window, scores=NULL){
 
 # -------- Create random string ----------
 # used to create random link_id (if link_id was not provided)
+# Internal function
 rand_string <- function(n = 5000) {
   a <- do.call(paste0, replicate(5, sample(LETTERS, n, TRUE), FALSE))
   paste0(a, sprintf("%04d", sample(9999, n, TRUE)), sample(LETTERS, n, TRUE))
@@ -378,9 +317,10 @@ rand_string <- function(n = 5000) {
 #                     Statistical Functions
 #=================================================================
 #---------------------------------------------------------------
-# DE 2.1 Boxcox transform to make a variable more "normal distributed"
+# Boxcox transform to make a variable more "normal distributed"
 #---------------------------------------------------------------
-# About BC --> review C4 1 Transformations for variance stabilization from data camp: Forecasting Using R
+# Note: bc - box cox
+# Internal function
 bc_transform <- function(vec){
                 if (min(vec)>0)  {bc<-boxcox((vec)~1,plotit=F)
                    (lambda<-bc$x[which.max(bc$y)])
@@ -395,11 +335,11 @@ bc_transform <- function(vec){
                         }
 }
 
-#TODO: Doc + Example
 #---------------------------------------------------------------
-# DE 2.2 Univariate Outliers Points
+# Univariate Outliers Points
 #---------------------------------------------------------------
 # Identifies outlier points based on box-cox values and univariate SPC rule (Median + Mad)
+# Internal function
 outlier_points <- function(vec){
 
   LCL <- mean(vec, trim=0.1)-3.2*mad(vec)
@@ -412,7 +352,7 @@ outlier_points <- function(vec){
 
 
 #---------------------------------------------------------------
-# D 2.4 T2 Hotelling
+# T2 Hotelling
 #---------------------------------------------------------------
 
 
@@ -421,8 +361,8 @@ outlier_points <- function(vec){
 #'
 #' Hotelling T2 scoring method for calculating multivariate anomaly scores.
 #'
-#' @param mat dataset of continuous variables from the same scale in matrix format.
-#' @param cov Character, specifies the method of cov estimate "pearson", "spearman", "mcd75", "mcd50", "mve","Srivastava-Du","Croux-Ollerer"
+#' @param mat Matrix, data.table or data.frame. Containing continuous variables.
+#' @param cov Character, specifies the method of cov estimate "pearson", "spearman", "mcd75", "mcd50", "mve","Srivastava-Du","croux_ollerer"
 #'
 #' @return A vector of numeric scores per observation (row).
 #'
@@ -436,42 +376,39 @@ outlier_points <- function(vec){
 #' anomaly.scores<- cbind(id=as.numeric(colnames(data)), T2.score)
 #' MultiNav(data,type = "scores", scores = anomaly.scores)
 #'
-#' @references ROUSSEEUW, P. J., et al. Robustbase: basic robust statistics. R package version 0.4-5, URL http://CRAN. R-project. org/package= robustbase, 2009.
-#' @references Montgomery, Douglas C. Introduction to statistical quality control. John Wiley & Sons, 2007.
+#' @references ROUSSEEUW, P. J., et al. Robustbase: basic robust statistics. R package version 0.4-5, R-project. org/package= robustbase, 2009.
+#' @references HOTELLING, HAROLD. Multivariate quality control. Techniques of statistical analysis. McGraw-Hill, New York, 1947.
+#'
+#' @seealso \code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{T2_mcd50}}, \code{\link[MultiNav]{T2_mcd75}}, \code{\link[MultiNav]{T2_mve}}, \code{\link[MultiNav]{T2_croux_ollerer}}, \code{\link[MultiNav]{T2_srivastava_du}}
 #'
 #' @export
 T2 <- function(mat, cov="pearson"){
-  if (cov=="mcd") {
-    rob<- cov.rob(mat, cor = TRUE, method = "mcd")
-    mu_hat<- rob$center
-    cov_est <- rob$cov
-     }
-  else if (cov=="mcd75") {
+#  if (cov=="mcd") {
+#    rob<- cov.rob(mat, cor = TRUE, method = "mcd")
+#    mu_hat<- rob$center
+#    cov_est <- rob$cov
+#     } else
+   if (cov=="mcd75") {
 
     rob<-covMcd(mat, alpha=0.75)
-
     mu_hat<- rob$center
     cov_est <- rob$cov
-
-  }
-
-  else if (cov=="mcd50") {
+   }
+   else if (cov=="mcd50") {
 
     rob<-covMcd(mat, alpha=0.50)
-
     mu_hat<- rob$center
     cov_est <- rob$cov
-
   }
 
-  else if (cov=="covMcd") {
+#  else if (cov=="covMcd") {
 
-    rob<-covMcd(mat)
+# rob<-covMcd(mat)
 
-    mu_hat<- rob$center
-    cov_est <- rob$cov
+  #  mu_hat<- rob$center
+  #  cov_est <- rob$cov
 
-  }
+  #}
 
   else if (cov=="mve") {
       rob<- cov.rob(mat, cor = TRUE, method = "mve")
@@ -486,14 +423,14 @@ T2 <- function(mat, cov="pearson"){
           mu_hat<- apply(mat,2,median,na.rm = TRUE)
           cov_est <- cov(mat, method = c("spearman"))
         }
-  else if (cov=="Srivastava-Du") {   #(diagonal)
+  else if (cov=="srivastava_du") {   #(diagonal)
     mu_hat<- apply(mat,2,median,na.rm = TRUE)
     cov_est <- cov(mat)
     cov_est[lower.tri(cov_est)] <- 0
     cov_est[upper.tri(cov_est)] <- 0
   }
 
-  else if (cov=="Croux-Ollerer") {  #(Adaptive)
+  else if (cov=="croux_ollerer") {  #(Adaptive)
     mu_hat<- apply(mat,2,median,na.rm = TRUE)
     cov_est <- spearman.transformed(mat,method="npd")
   }
@@ -530,13 +467,15 @@ T2_mcd <-function(mat)
 #' calculated based on covariance estimate with mcd method where
 #' the determinant is minimized based on 75 percent subset of the data.
 #'
-#' @param mat dataset of continuous variables from the same scale in matrix format.
+#' @param mat Matrix, data.table or data.frame. Containing continuous variables.
 #'
 #' @return A vector of numeric scores per observation (row).
 #'
 #' @references ROUSSEEUW, P. J., et al. Robustbase: basic robust statistics. R package version 0.4-5, URL http://CRAN. R-project. org/package= robustbase, 2009.
-#' @references Montgomery, Douglas C. Introduction to statistical quality control. John Wiley & Sons, 2007.
+#' @references HOTELLING, HAROLD. Multivariate quality control. Techniques of statistical analysis. McGraw-Hill, New York, 1947.
 #' @references Wilcox, Rand R. Introduction to robust estimation and hypothesis testing. Academic Press, 2012.
+#'
+#' @seealso \code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{T2}}, \code{\link[MultiNav]{T2_mcd50}}, \code{\link[MultiNav]{T2_mve}}, \code{\link[MultiNav]{T2_srivastava_du}}, \code{\link[MultiNav]{T2_croux_ollerer}}
 #'
 #' @examples
 #' data <- LambsWeight[58:62,]
@@ -563,21 +502,23 @@ T2_mcd75 <-function(mat)
 #' calculated based on covariance estimate with mcd method where
 #' the determinant is minimized based on 50 percent subset of the data.
 #'
-#' @param mat dataset of continuous variables from the same scale in matrix format.
+#' @param mat Matrix, data.table or data.frame. Containing continuous variables.
 #'
 #' @return A vector of numeric scores per observation (row).
 #'
 #' @references ROUSSEEUW, P. J., et al. Robustbase: basic robust statistics. R package version 0.4-5, URL http://CRAN. R-project. org/package= robustbase, 2009.
-#' @references Montgomery, Douglas C. Introduction to statistical quality control. John Wiley & Sons, 2007.
+#' @references HOTELLING, HAROLD. Multivariate quality control. Techniques of statistical analysis. McGraw-Hill, New York, 1947.
 #' @references Wilcox, Rand R. Introduction to robust estimation and hypothesis testing. Academic Press, 2012.
+#'
+#' @seealso \code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{T2}}, \code{\link[MultiNav]{T2_mcd75}}, \code{\link[MultiNav]{T2_mve}}, \code{\link[MultiNav]{T2_srivastava_du}}, \code{\link[MultiNav]{T2_croux_ollerer}}
+#'
 #'
 #' @examples
 #' data <- LambsWeight[58:62,]
-
-#' #Create score per sensor
+#' # Create score per sensor
 #' T2_mcd50.score<-T2_mcd50(t(data))
-
-#' #View scores with MultiNav function
+#'
+#' # View scores with MultiNav function
 #' anomaly.scores<- cbind(id=as.numeric(colnames(data)), T2_mcd50.score)
 #' MultiNav(data,type = "scores", scores = anomaly.scores)
 #'
@@ -588,12 +529,6 @@ T2_mcd50 <-function(mat)
   return(scores)
 }
 
-# T2_covMcd <-function(mat)
-#{
-#  scores<- T2(mat, cov="covMcd")
-#  return(scores)
-#}
-
 # ------- T2_mve -------
 #' T2_mve
 #'
@@ -601,12 +536,14 @@ T2_mcd50 <-function(mat)
 #' A variation of popular Hotelling T2,
 #' calculated based on covariance estimate with mve method.
 #'
-#' @param mat dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale.
+#' @param mat Matrix, data.table or data.frame. Containing continuous variables.
 #'
 #' @return A vector of numeric scores per observation (row).
 #'
-#' @references Montgomery, Douglas C. Introduction to statistical quality control. John Wiley & Sons, 2007.
+#' @references HOTELLING, HAROLD. Multivariate quality control. Techniques of statistical analysis. McGraw-Hill, New York, 1947.
 #' @references Wilcox, Rand R. Introduction to robust estimation and hypothesis testing. Academic Press, 2012.
+#'
+#' @seealso  \code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{T2}}, \code{\link[MultiNav]{T2_mcd50}}, \code{\link[MultiNav]{T2_mcd75}}, \code{\link[MultiNav]{T2_srivastava_du}}, \code{\link[MultiNav]{T2_croux_ollerer}}
 #'
 #' @examples
 #' data <- LambsWeight[58:62,]
@@ -625,77 +562,72 @@ T2_mve <-function(mat)
   return(scores)
 }
 
-# ------- T2_spearman -------
-#spearman
-T2_spearman <-function(mat)
-{
-  scores<- T2(mat, cov="spearman")
-  return(scores)
-}
-
-# ------- T2_SrivastavaDu -------
-#' T2_SrivastavaDu
+# ------- T2_srivastava_du -------
+#' T2_srivastava_du
 #'
 #' Method for calculating multivariate anomaly scores.
 #' A variation of popular Hotelling T2,
 #' calculated based on covariance estimate with Srivastava-Du method.
 #'
-#' @param mat dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale.
+#' @param mat Matrix, data.table or data.frame. Containing continuous variables.
 #'
 #' @return A vector of numeric scores per observation (row).
+#'
+#' @seealso \code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{T2}}, \code{\link[MultiNav]{T2_mcd50}}, \code{\link[MultiNav]{T2_mcd75}}, \code{\link[MultiNav]{T2_mve}}, \code{\link[MultiNav]{T2_croux_ollerer}}
 #'
 #' @examples
 #' data <- LambsWeight[58:62,]
 #'
 #' #Create score per sensor
-#' T2_SrivastavaDu.score<-T2_SrivastavaDu(t(data))
+#' T2_srivastava_du.score<-T2_srivastava_du(t(data))
 #'
 #' #View scores with MultiNav function
-#' anomaly.scores<- cbind(id=as.numeric(colnames(data)), T2_SrivastavaDu.score)
+#' anomaly.scores<- cbind(id=as.numeric(colnames(data)), T2_srivastava_du.score)
 #' MultiNav(data,type = "scores", scores = anomaly.scores)
 #'
-#' @references Montgomery, Douglas C. Introduction to statistical quality control. John Wiley & Sons, 2007.
+#' @references HOTELLING, HAROLD. Multivariate quality control. Techniques of statistical analysis. McGraw-Hill, New York, 1947.
 #' @references Srivastava, Muni S., and Meng Du. "A test for the mean vector with fewer observations than the dimension." Journal of Multivariate Analysis 99.3 (2008): 386-402
 #'
 #' @export
-T2_SrivastavaDu <-function(mat)
+T2_srivastava_du <-function(mat)
 {
-  scores<- T2(mat, cov="Srivastava-Du")
+  scores<- T2(mat, cov="srivastava_du")
   return(scores)
 }
 
-# ------- T2_CrouxOllerer -------
-#' Croux-Ollerer
+# ------- T2_croux_ollerer -------
+#' croux_ollerer
 #'
 #' Method for calculating multivariate anomaly scores.
 #' A variation of popular Hotelling T2,
 #' calculated based on covariance estimate with Croux-Ollerer method.
 #'
-#' @param mat dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale.
+#' @param mat Matrix, data.table or data.frame. Containing continuous variables.
 #'
 #' @return A vector of numeric scores per observation (row).
+#'
+#' @seealso \code{\link[MultiNav]{MultiNav}},\code{\link[MultiNav]{T2}}, \code{\link[MultiNav]{T2_mcd50}}, \code{\link[MultiNav]{T2_mcd75}}, \code{\link[MultiNav]{T2_mve}},  \code{\link[MultiNav]{T2_srivastava_du}}
 #'
 #' @examples
 #' data <- LambsWeight[58:62,]
 #'
 #' #Create score per sensor
-#' T2_CrouxOllerer.score<-T2_CrouxOllerer(t(data))
+#' T2_croux_ollerer.score<-T2_croux_ollerer(t(data))
 #'
 #' #View scores with MultiNav function
-#' anomaly.scores<- cbind(id=as.numeric(colnames(data)), T2_CrouxOllerer.score)
+#' anomaly.scores<- cbind(id=as.numeric(colnames(data)), T2_croux_ollerer.score)
 #' MultiNav(data,type = "scores", scores = anomaly.scores)
 #'
-#' @references Montgomery, Douglas C. Introduction to statistical quality control. John Wiley & Sons, 2007.
+#' @references HOTELLING, HAROLD. Multivariate quality control. Techniques of statistical analysis. McGraw-Hill, New York, 1947.
 #' @references CROUX, Christophe; ÖLLERER, Viktoria. Robust and sparse estimation of the inverse covariance matrix using rank correlation measures. In: Recent Advances in Robust Statistics: Theory and Applications. Springer, New Delhi, 2016. p. 35-55.
 #'
 #'
 #' @export
-T2_CrouxOllerer <-function(mat)
+T2_croux_ollerer <-function(mat)
 {
-  scores<- T2(mat, cov="Croux-Ollerer")
+  scores<- T2(mat, cov="croux_ollerer")
   return(scores)
 }
-
 
 
 #---------------------------------------------------------------
@@ -707,7 +639,7 @@ T2_CrouxOllerer <-function(mat)
 #' based on Eigenvector centrality, which is a popular network centrality measure.
 #' The anomaly scores are calculated based on distance matrix estimate.
 #'
-#' @param mat dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale.
+#' @param mat Matrix, data.table or data.frame. Containing continuous variables.
 #'
 #' @return A vector of numeric scores per each variable.
 #'
@@ -726,8 +658,6 @@ EigenCentrality <- function(mat){
   res_cor <- cor(mat,use="pairwise.complete.obs")
   res_cor<- 1-res_cor
 
-  #res_cor<- as.matrix(dist(t(mat), diag = TRUE, upper = TRUE))
-
   res_cor_graph <- graph.adjacency(res_cor, mode="upper", weighted=TRUE, diag=FALSE)
   EigenvectorCentrality<-evcent (res_cor_graph, scale = TRUE, weights = NULL, options = igraph.arpack.default)$vector
 
@@ -736,16 +666,11 @@ EigenCentrality <- function(mat){
 
 
 #---------------------------------------------------------------
-# DE 2.5 Croux-Ollerer (Adaptive) cov
+# Croux-Ollerer (Adaptive) cov
 #---------------------------------------------------------------
-
-#library(robustbase)
-#library(huge)
-
-
-
 # easy.psd
 # Function code from - CROUX, Christophe; ÖLLERER, Viktoria. Robust and sparse estimation of the inverse covariance matrix using rank correlation measures. In: Recent Advances in Robust Statistics: Theory and Applications. Springer, New Delhi, 2016. p. 35-55.
+# Internal function
 easy.psd<-function(sigma,method="perturb")
 {
   if (method=="perturb")
@@ -766,6 +691,7 @@ easy.psd<-function(sigma,method="perturb")
 
 #spearman.transformed
 # Function code from - CROUX, Christophe; ÖLLERER, Viktoria. Robust and sparse estimation of the inverse covariance matrix using rank correlation measures. In: Recent Advances in Robust Statistics: Theory and Applications. Springer, New Delhi, 2016. p. 35-55.
+# Internal function
 spearman.transformed<-function(x,method="perturb")
 {
   x.r=apply(x,2,rank)
@@ -788,11 +714,12 @@ spearman.transformed<-function(x,method="perturb")
 #' of each variable (sensor): minimum, quantile 25, median, quantile 75, maximum, mean, standard deviation,
 #' mad, skewness and kurtosis.
 #'
-#' @param data dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale. A unique numeric row name should be assigned to each observation and will be used as unique identifier (id). A unique numeric column name should be assigned to each variable.
+#' @param data Matrix, data.table or data.frame. Containing continuous variables. A unique numeric row name should be assigned to each observation and will be used as unique identifier (id). A unique numeric column name should be assigned to each variable.
 #' @param op Logical, if TRUE, boxcox transformation is calculated for each descriptive statistic. In addition outlier flag is added per each descriptive statistic, with value 1 to indicate outlier, 0 to indicate inliner. The outlier flag is set according to 3 sigma control limits.
 #'
 #' @return Returns a data.frame
 #'
+#' @seealso \code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{Calc_quantiles_matrix}}, \code{\link[MultiNav]{extract_sd0}}, \code{\link[MultiNav]{sliding_window_scores}}
 #'
 #' @examples
 #' library(MultiNav)
@@ -805,15 +732,11 @@ spearman.transformed<-function(x,method="perturb")
 #'
 #' @export
 Calc_uni_matrix <- function(data, op=FALSE){
-  library(moments)
-  library("MASS")
+# Note: op - Outier point
 
-
-#----
 # Ensuring only records with no missing data are included in the analysis.
 data <- na.omit(data)
 
-#-----
 # Removing id col, if exsits
 
 if (length(which(colnames(data)=="seq_id")) > 0 )
@@ -827,7 +750,6 @@ data<-data[,-id.var]
 }
 
 ids<- as.numeric(colnames(data))
-
 
 # Calculations
 
@@ -852,47 +774,33 @@ skewness <- apply(data,2,skewness,na.rm = TRUE);
 #10
 kurtosis <- apply(data,2,kurtosis,na.rm = TRUE);
 
-
-# spc_zones<- apply(data,2,spc_zones);
 # box-cox transformations
-
 if (op==TRUE)
 {
+    min_bc <-bc_transform(min)
+    quantile_25_bc <-bc_transform(quantile_25)
+    median_bc <-bc_transform(median)
+    quantile_75_bc <-bc_transform(quantile_75)
+    max_bc <-bc_transform(max)
+    mean_bc <-bc_transform(mean)
+    sd_bc <-bc_transform(sd)
+    mad_bc <-bc_transform(mad+0.001)           # added 0.001, becuse mad can be 0
+    skewness_bc <-bc_transform(skewness)
+    kurtosis_bc <-bc_transform(kurtosis)
 
-min_bc <-bc_transform(min)
-
-quantile_25_bc <-bc_transform(quantile_25)
-
-median_bc <-bc_transform(median)
-
-quantile_75_bc <-bc_transform(quantile_75)
-
-max_bc <-bc_transform(max)
-
-mean_bc <-bc_transform(mean)
-
-sd_bc <-bc_transform(sd)
-
-mad_bc <-bc_transform(mad+0.001)           # added 0.001, becuse mad can be 0
-
-skewness_bc <-bc_transform(skewness)
-
-kurtosis_bc <-bc_transform(kurtosis)
-
-# Outlier points
-min_op<-outlier_points(min_bc)
-quantile_25_op<-outlier_points(quantile_25_bc)
-median_op<-outlier_points(median_bc)
-quantile_75_op<-outlier_points(quantile_75_bc)
-max_op<-outlier_points(max_bc)
-mean_op<-outlier_points(mean_bc)
-sd_op<-outlier_points(sd_bc)
-mad_op<-outlier_points(mad_bc)
-skewness_op<-outlier_points(skewness_bc)
-kurtosis_op<-outlier_points(kurtosis_bc)
+    # Outlier points
+    min_op<-outlier_points(min_bc)
+    quantile_25_op<-outlier_points(quantile_25_bc)
+    median_op<-outlier_points(median_bc)
+    quantile_75_op<-outlier_points(quantile_75_bc)
+    max_op<-outlier_points(max_bc)
+    mean_op<-outlier_points(mean_bc)
+    sd_op<-outlier_points(sd_bc)
+    mad_op<-outlier_points(mad_bc)
+    skewness_op<-outlier_points(skewness_bc)
+    kurtosis_op<-outlier_points(kurtosis_bc)
 
 }
-
 
 if (op==TRUE)
 {
@@ -908,13 +816,12 @@ else
 uni_matrix <- cbind(id=ids, uni_matrix)  #row.names(uni_matrix)
 
 return(data.frame(uni_matrix))
-length(ids)
-dim(uni_matrix)
+
 }
 
 
 #---------------------------------------------------------------
-# E 3.2 Quantiles_matrix
+# Quantiles_matrix
 #---------------------------------------------------------------
 #' Calc_quantiles_matrix
 #'
@@ -923,10 +830,12 @@ dim(uni_matrix)
 #' Minimum and maximum of each row are also included in the output dataset.
 #' The ‘quantiles matrix’ is created in the format needed as input for MultiNav's functional boxplot chart.
 #'
-#' @param data dataset in the format of data.table, data.frame or matrix which contains continuous variables from the same scale. A unique numeric row name should be assigned to each observation and will be used as unique identifier (id). If row names were not assigned, row number will be used as id. A unique numeric column name should be assigned to each variable.
+#' @param data Matrix, data.table or data.frame. Containing continuous variables. A unique numeric row name should be assigned to each observation and will be used as unique identifier (id). If row names were not assigned, row number will be used as id. A unique numeric column name should be assigned to each variable.
 #' @param quantiles Optional argument. Gives option to specify custom quantiles instead of the default: quantiles = c(0.05, 0.25, 0.75, 0.95).
 #'
 #' @return Returns a data.frame
+#'
+#' @seealso \code{\link[MultiNav]{MultiNav}}, \code{\link[MultiNav]{Calc_uni_matrix}}, \code{\link[MultiNav]{extract_sd0}}, \code{\link[MultiNav]{sliding_window_scores}}
 #'
 #' @examples
 #' library(MultiNav)
@@ -967,10 +876,6 @@ Calc_quantiles_matrix <- function(data, quantiles=c(0.05,0.25,0.75,0.95)){
     ids <-as.numeric(colnames(data))
   }
 
-
-  #TODO - removing first line, as it is seq_id field
-  # need to check if this is really needed
-  # (adding seq id upfront in data, then quntails_matrix procedure removes it)
   data<-data[-c(1), ]
   min <- round(apply(data,2,min,na.rm = TRUE),3)
   quantile_a <- round(apply(data,2,quantile,probs=quantiles[1],na.rm = TRUE),3)
@@ -985,72 +890,4 @@ Calc_quantiles_matrix <- function(data, quantiles=c(0.05,0.25,0.75,0.95)){
 
   return(data.frame(quantiles_matrix))
 }
-
-
-
-#=================================================================
-#                   Outliers
-#=================================================================
-#---------------------------------------------------------------
-# DE 2.6 Robust scaling
-#---------------------------------------------------------------
-
-# TBD - review code at - https://gist.github.com/dalincn/edaa9eb5f9e7fddfb4c83681ae5ed92f
-# TODO - Check input is a matrix of numeric values
-# TODO - Add handeling of cases that mad = 0
-# TODO - where to put the reference to dplyr lib
-robust.scale <- function(data){
-  library(dplyr)
-  median.vec<-apply(data, 2, median)
-  mad.vec<-apply(data, 2, mad)
-
-  # subtract the column medians then divide by mad
-  robust.scale<-sweep(data, 2, median.vec, "-") %>%
-    sweep(2, mad.vec, "/")
-
-  return(robust.scale)
-
-}
-
-
-anomaly_features <- function(data){
-
-  #TODO - add optional parameter to filter and leave only anomaly records
-  #TODO - check that data has  rownames and data has no na
-
-  anomaly.features <-matrix()
-
-  # 0. Check that the data is normal if not then normalize it
-  # TODO - for now assuming that data is MV normal
-
-  # 1. Transform data to robust scale
-  data<-robust.scale(data)
-
-  # note - after the z score - med = 0 and mad = 1
-
-  # 2. change all non anomaly values to 0.
-  anomaly.score <- ifelse(data<3 & data>0, 0, data)
-  anomaly.score <- ifelse(anomaly.score <0 & anomaly.score >-3, 0, anomaly.score)
-
-  anomaly.score <- ifelse(anomaly.score >3,     anomaly.score-3,
-                          ifelse(anomaly.score < (-3), anomaly.score+3,
-                                 anomaly.score))
-
-  # 3. calculate sum of outlier strength in univariate direction
-  uni.anomaly.ss <- apply(anomaly.score, 1, SS)
-
-  # 4. uni_anomaly count
-  uni.anomaly.cnt <- ifelse(abs(anomaly.score)>0, 1, 0)%>% apply(1, sum)
-
-  # 5. uni_anomaly count pos and neg
-  uni.anomaly.cnt.pos <- ifelse(anomaly.score>0, 1, 0)%>% apply(1, sum)
-  uni.anomaly.cnt.neg <- ifelse(anomaly.score<0, 1, 0)%>% apply(1, sum)
-
-
-  anomaly.features<- cbind(uni.anomaly.ss, uni.anomaly.cnt,uni.anomaly.cnt.pos, uni.anomaly.cnt.neg)
-  row.names(anomaly.features)<-row.names(data)
-  return (list(anomaly.score,anomaly.features))
-
-}
-
 
